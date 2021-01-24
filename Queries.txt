@@ -1,0 +1,92 @@
+/* Query 1 - The Most-Purchased Song Genre */
+
+SELECT 
+	a.Name as genre_type
+	,count(*) as num_purchases
+FROM Genre a
+INNER JOIN Track b
+	on a.GenreId = b.GenreId
+INNER JOIN InvoiceLine c
+	on b.TrackId = c.TrackId
+GROUP BY a.Name
+ORDER BY num_purchases DESC;
+
+/* Query 2 - The Most Popular Artist With The Music Genre */
+
+WITH most_earned_artist
+as
+(SELECT a.ArtistId
+	,a.Name as artist_name
+	,sum (b.UnitPrice * b.Quantity) as earnings
+FROM Artist a
+INNER JOIN Album c
+	on a.ArtistId = c.ArtistId
+INNER JOIN Track d
+	on c.AlbumId = d.AlbumId
+INNER JOIN InvoiceLine b
+	on d.TrackId = b.TrackId
+GROUP BY a.ArtistId, artist_name
+ORDER BY earnings DESC
+LIMIT 5)
+
+SELECT
+	a.ArtistId
+	,a.Name as artist_name
+	,e.Name as genre_type
+	,sum (b.UnitPrice * b.Quantity) as earnings
+FROM Artist a
+INNER JOIN Album c
+	on a.ArtistId = c.ArtistId
+INNER JOIN Track d
+	on c.AlbumId = d.AlbumId
+INNER JOIN Genre e
+	on d.GenreId = e.GenreId
+INNER JOIN InvoiceLine  b
+	on d.TrackId = b.TrackId
+WHERE a.Name = (SELECT artist_name FROM most_earned_artist)
+GROUP BY a.ArtistId, a.Name, e.Name
+ORDER BY earnings DESC;
+
+/* Query 3 - Top 10 Albums Based on Earnings */
+
+SELECT
+	a.AlbumId
+	,b.Name as artist_name
+	,a.Title
+	,sum (c.UnitPrice * c.Quantity) as earnings
+FROM Artist b
+INNER JOIN Album a
+	on b.ArtistId = a.ArtistId
+INNER JOIN Track d
+	on a.AlbumId = d.AlbumId
+INNER JOIN InvoiceLine c
+	on d.TrackId = c.TrackId
+GROUP BY a.AlbumId, b.Name, a.Title
+ORDER BY earnings DESC
+LIMIT 10;
+
+/* Query 4 - Top 5 Artists Who Have Recorded Most Albums */
+
+SELECT
+	a.Name as artist_name
+	,count (b.Title) as total_album
+FROM Artist a
+INNER JOIN Album b
+	on a.ArtistId = b.ArtistId
+GROUP BY a.Name
+ORDER BY total_album DESC
+LIMIT 5;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
